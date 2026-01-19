@@ -119,7 +119,20 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowAngular", policy => {
+        policy.WithOrigins("http://localhost:4200") 
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+
+
 var app = builder.Build();
+
+app.UseCors("AllowAngular");
 
 
 Log.Information("האפליקציה רצה!");
