@@ -7,6 +7,9 @@ namespace Chinese_Auction.Dto_s
     {
         [Required]
         public string Name { get; set; } = string.Empty;
+        [Required]
+        public string Picture { get; set; } = string.Empty;
+
 
     }
 
@@ -16,8 +19,12 @@ namespace Chinese_Auction.Dto_s
         public int Id { get; set; }
         [Required]
         public string Name { get; set; } = string.Empty;
+        [Required]
+        public string Picture { get; set; } = string.Empty;
+
 
         [Required]
         public ICollection<GiftDto> Gifts { get; set; } = new List<GiftDto>();
+
     }
 }

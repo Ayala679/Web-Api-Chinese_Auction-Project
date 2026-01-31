@@ -112,12 +112,13 @@ namespace ChineseAuction.Controllers
                     _logger.LogInformation("User registered successfully.");
                     return CreatedAtRoute("GetUserById", new { id = newUser.Id }, newUser);
                 }
+
                 return BadRequest("User could not be created.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error registering new user.");
-                return BadRequest("Internal server error occurred");
+                return BadRequest(ex.Message);
             }
         }
 
@@ -125,9 +126,18 @@ namespace ChineseAuction.Controllers
         public async Task<IActionResult> LoginUserAsync([FromBody] LoginRequestDto userDto)
         {
             _logger.LogInformation("Authenticating user.");
-            var authResponse = await _userSevice.AuthenticateAsync(userDto);
-            _logger.LogInformation("User authentication process completed.");
-            return authResponse == null ? Unauthorized() : Ok(authResponse);
+            try
+            {
+                var authResponse = await _userSevice.AuthenticateAsync(userDto);
+                _logger.LogInformation("User authentication process completed.");
+                return authResponse == null ? Unauthorized() : Ok(authResponse);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error during user authentication.");
+                return BadRequest(ex.Message);
+            }
+            
         }
     }
 }

@@ -9,6 +9,8 @@ namespace Chinese_Auction.Models
 
         [Required]
         public string Name { get; set; } = string.Empty;
+        [Required]
+        public string Picture { get; set; } = string.Empty;
         public ICollection<Gift> Gifts { get; set; } = new List<Gift>();
     } 
 }
