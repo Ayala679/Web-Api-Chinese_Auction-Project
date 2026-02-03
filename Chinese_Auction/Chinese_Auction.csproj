@@ -29,7 +29,7 @@
     <Folder Include="Migrations\" />
     <Folder Include="Middlewares\" />
     <Folder Include="Logs\" />
-    <Folder Include="wwwroot\images\" />
+    <Folder Include="wwwroot\images\categories\" />
   </ItemGroup>
 
 </Project>

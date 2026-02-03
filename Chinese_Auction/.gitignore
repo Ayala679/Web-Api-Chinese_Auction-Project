@@ -5,7 +5,7 @@
 
 # dotenv files
 .env
-
+*wwwroot/images
 # User-specific files
 *.rsuser
 *.suo
