@@ -7,7 +7,7 @@ namespace Chinese_Auction.Dto_s
     {
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
-        [Required, MinLength(8), MaxLength(20)]
+        [Required, MaxLength(20)]
         public string Password { get; set; } = string.Empty;
         [Required, MaxLength(30)]
         public string First_name { get; set; } = string.Empty;

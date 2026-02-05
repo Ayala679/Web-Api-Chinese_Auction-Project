@@ -4,6 +4,7 @@ using Chinese_Auction.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Chinese_Auction.Migrations
 {
     [DbContext(typeof(ChineseAuctionDbContext))]
-    partial class ChineseAuctionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260204153016_initialCreate_9")]
+    partial class initialCreate_9
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
