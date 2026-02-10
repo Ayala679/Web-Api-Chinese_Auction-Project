@@ -132,20 +132,19 @@ namespace Chinese_Auction.Controllers
                     
                     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/categories", category.Picture); 
 
-                if (System.IO.File.Exists(filePath)) 
-                {
-                    System.IO.File.Delete(filePath); 
-                    _logger.LogInformation("Deleted physical file: " + category.Picture); 
-                }
-            } 
+                    if (System.IO.File.Exists(filePath)) 
+                    {
+                        System.IO.File.Delete(filePath); 
+                        _logger.LogInformation("Deleted physical file: " + category.Picture); 
+                    }
+                } 
                 _logger.LogInformation("Deleted category successfully.");
-                if (!isDeleted) return NotFound("error ocuured while deleting");
                 return Ok("deleted succesfully");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 _logger.LogError("An error occurred while deleting the category.");
-                return BadRequest("Internal server error ocuured");
+                return BadRequest(ex.Message);
             }
 
         }

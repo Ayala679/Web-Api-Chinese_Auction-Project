@@ -13,14 +13,14 @@ namespace Chinese_Auction.Dto_s
         public string Description { get; set; } = string.Empty;
         public string? Details { get; set; }
         [Required]
-        public string picture { get; set; } = string.Empty;
+        public string Picture { get; set; } = string.Empty;
         [Required]
         public int Value { get; set; }
         [Required]
         public int Donor_Id { get; set; }
         [Required]
         public int Category_Id { get; set; } 
-        public bool isLottery { get; set; } = false;
+        public bool IsLottery { get; set; } = false;
         public bool IsApproved { get; set; } = false;
     }
 
@@ -35,14 +35,14 @@ namespace Chinese_Auction.Dto_s
         [Required]
         public string? Details { get; set; }
         [Required]
-        public string picture { get; set; } = string.Empty;
+        public string Picture { get; set; } = string.Empty;
         [Required]
         public int Value { get; set; }
         [Required]
         public int Donor_Id { get; set; }
         [Required]
         public string Category_Name { get; set; } = string.Empty;
-        public bool isLottery { get; set; } = false;
+        public bool IsLottery { get; set; } = false;
         public bool IsApproved { get; set; } = false;
         [Required]
         public int Purchase_quantity { get; set; }

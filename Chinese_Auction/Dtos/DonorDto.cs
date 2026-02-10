@@ -50,5 +50,6 @@ namespace Chinese_Auction.Dto_s
         public string? Company_picture { get; set; }
         [Required]
         public bool Is_publish { get; set; } = false;
+        public ICollection<Gift> Gifts { get; set; } = new List<Gift>();
     }
 }

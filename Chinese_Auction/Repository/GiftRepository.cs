@@ -19,7 +19,7 @@ namespace Chinese_Auction.Repository
             return await _context.Gifts
                 .Include(g => g.Category)
                 .Include(g => g.Donor)
-                .Where(g => g.IsApproved)
+                //.Where(g => g.IsApproved)
                 .ToListAsync();
         }
 

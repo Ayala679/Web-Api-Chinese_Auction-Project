@@ -19,7 +19,7 @@ namespace Chinese_Auction.Repository
         //only manager can get all donors
         public async Task<IEnumerable<Donor>> GetAllDonorsAsync()
         {
-            return await _context.Donors.ToListAsync();
+            return await _context.Donors.Include(d => d.Gifts).ToListAsync();
         }
 
 

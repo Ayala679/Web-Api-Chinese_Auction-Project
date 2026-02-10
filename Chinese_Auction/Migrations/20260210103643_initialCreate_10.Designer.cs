@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Chinese_Auction.Migrations
 {
     [DbContext(typeof(ChineseAuctionDbContext))]
-    [Migration("20260204210517_initial_create9")]
-    partial class initial_create9
+    [Migration("20260210103643_initialCreate_10")]
+    partial class initialCreate_10
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -130,6 +130,10 @@ namespace Chinese_Auction.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<string>("Picture")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Purchase_quantity")
                         .HasColumnType("int");
 
@@ -138,10 +142,6 @@ namespace Chinese_Auction.Migrations
 
                     b.Property<bool>("isLottery")
                         .HasColumnType("bit");
-
-                    b.Property<string>("picture")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

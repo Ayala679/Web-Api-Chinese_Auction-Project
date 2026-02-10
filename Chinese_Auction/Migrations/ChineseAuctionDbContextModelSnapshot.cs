@@ -127,6 +127,10 @@ namespace Chinese_Auction.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<string>("Picture")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Purchase_quantity")
                         .HasColumnType("int");
 
@@ -135,10 +139,6 @@ namespace Chinese_Auction.Migrations
 
                     b.Property<bool>("isLottery")
                         .HasColumnType("bit");
-
-                    b.Property<string>("picture")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

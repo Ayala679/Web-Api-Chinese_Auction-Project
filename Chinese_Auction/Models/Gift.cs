@@ -15,7 +15,7 @@ namespace Chinese_Auction.Models
         public string? Details { get; set; }
 
         [Required]
-        public string picture { get; set; } = string.Empty;
+        public string Picture { get; set; } = string.Empty;
 
         [Required]
         public int Value { get; set; }

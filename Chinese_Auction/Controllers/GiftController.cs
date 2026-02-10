@@ -5,6 +5,7 @@ using ChineseAuction.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Drawing;
 
 namespace Chinese_Auction.Controllers
 {
@@ -58,43 +59,81 @@ namespace Chinese_Auction.Controllers
 
         [Authorize(Roles = "Manager")]
         [HttpPost]
-        public async Task<IActionResult> CreateGiftAsync([FromBody] GiftDto gift)
+        public async Task<IActionResult> CreateGiftAsync([FromForm] GiftDto gift,IFormFile? imageFile)
         {
             _logger.LogInformation("Creating a new gift.");
             try
             {
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/gifts", fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+                    gift.Picture = fileName;
+                }
                 var newGift = await _giftService.CreateGiftAsync(gift);
                 _logger.LogInformation("Created new gift successfully.");
                 return CreatedAtAction(nameof(GetGiftByIdAsyncet), new { Id = newGift.Id }, newGift);
             }
             catch (Exception ex)
             {
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                 _logger.LogError(ex,"Error occurred while creating a new gift.");
-                return BadRequest("Internal server error ocuured");
+                return BadRequest(ex.Message);
             }
         }
 
         [Authorize(Roles = "Manager")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateGiftAsync([FromBody] GiftDto gift,int id)
+        public async Task<IActionResult> UpdateGiftAsync([FromForm] GiftDto gift,int id,IFormFile? imageFile)
         {
             _logger.LogInformation("Updating gift with ID:" + id);
             try
             {
-                var updatedGift = await _giftService.UpdateGiftAsync(id,gift);
-                if (updatedGift == null)
+                var existingGift = await _giftService.GetGiftByIdAsync(id);
+                if (existingGift == null)
                 {
                     return NotFound("gift with the given ID was not found");
                 }
+                
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    if (!string.IsNullOrEmpty(existingGift.Picture))
+                    {
+                        var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/gifts", existingGift.Picture);
+                        if (System.IO.File.Exists(oldFilePath))
+                        {
+                            System.IO.File.Delete(oldFilePath);
+                        }
+                    }
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                    var newFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/gifts", fileName);
+
+                    using (var stream = new FileStream(newFilePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+                    gift.Picture = fileName;
+                    
+                }
+                else
+                {
+                    gift.Picture = existingGift.Picture;
+                }
+                var updateGift = await _giftService.UpdateGiftAsync(id, gift);
                 _logger.LogInformation("Updated gift successfully.");
-                return Ok(updatedGift);
+                return Ok();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,"Error occurred while updating gift with ID:" + id);
-                return BadRequest("Internal server error ocuured");
-            }
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
 
+                _logger.LogError(ex,"Error occurred while updating gift with ID:" + id);
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize]
@@ -116,8 +155,9 @@ namespace Chinese_Auction.Controllers
             }
             catch (Exception ex)
             {
+
                 _logger.LogError(ex,"Error occurred while updating gift purchase quantity with ID:" + id);
-                return BadRequest("Internal server error ocuured");
+                return BadRequest(ex.Message);
             }
         }
 
@@ -126,13 +166,29 @@ namespace Chinese_Auction.Controllers
         public async Task<IActionResult> DeleteGiftAsync(int id)
         {
             _logger.LogInformation("Deleting gift with ID:" + id);
-            var deleted = await _giftService.DeleteGiftAsync(id);
-            if (!deleted)
+            try
             {
-                return NotFound("gift with the given ID was not foundgift with the given ID was not found");
+                var existingGift = await _giftService.GetGiftByIdAsync(id);
+                if (existingGift == null) return NotFound("gift with the given ID was not foundgift with the given ID was not found");
+                var isDeleted = await _giftService.DeleteGiftAsync(id);
+                if (!isDeleted)
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/gifts", existingGift.Picture);
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                        _logger.LogInformation("Deleted physical file: " + existingGift.Picture);
+                    }
+                }
+                _logger.LogInformation("Deleted gift successfully.");
+                return Ok("deleted succesfully");
             }
-            _logger.LogInformation("Deleted gift successfully.");
-            return Ok("deleted succesfully");
+            catch (Exception ex)
+            {
+                _logger.LogError("An error occurred while deleting the gift.");
+                return BadRequest(ex.Message);
+
+            }
         }
 
         [Authorize(Roles = "Manager")]

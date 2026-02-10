@@ -50,7 +50,6 @@ namespace Chinese_Auction.Controllers
             _logger.LogInformation("Creating a new donor.");
             try
             {
-                _logger.LogInformation("Created new donor successfully.");
                 if (imageFile != null && imageFile.Length > 0)
                 {
                     var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
@@ -62,6 +61,7 @@ namespace Chinese_Auction.Controllers
                     donor.Company_picture = fileName;
                 }
                 var newDonor = await _donorService.CreateDonorAsync(donor);
+                _logger.LogInformation("Created new donor successfully.");
                 return CreatedAtAction(nameof(GetDonorById), new { id = newDonor.Id }, newDonor);
             }
             catch (Exception ex)
@@ -80,13 +80,16 @@ namespace Chinese_Auction.Controllers
             {
                 var existingDonor = await _donorService.GetDonorByIdAsync(id);
                 if (existingDonor == null) return NotFound();
-                if (imageFile != null && imageFile.Length > 0)
+                if (!string.IsNullOrEmpty(existingDonor.Company_picture))
                 {
                     var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/companies", existingDonor.Company_picture);
                     if (System.IO.File.Exists(oldFilePath))
                     {
                         System.IO.File.Delete(oldFilePath);
                     }
+                }
+                if (imageFile != null && imageFile.Length > 0)
+                {
                     var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
                     var newFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/companies", fileName);
 
@@ -98,10 +101,9 @@ namespace Chinese_Auction.Controllers
                 }
                 else
                 {
-                    donor.Company_picture = existingDonor.Company_picture;
+                    donor.Company_picture = null;
                 }
                 var updatedDonor = await _donorService.UpdateDonorAsync(id, donor);
-                if (updatedDonor == null) return NotFound("donor with the given ID was not found");
                 _logger.LogInformation("Updated donor with ID:" + id + " successfully.");
                 return Ok(updatedDonor);
             }
@@ -117,16 +119,27 @@ namespace Chinese_Auction.Controllers
         public async Task<IActionResult> DeleteDonor(int id)
         {
             _logger.LogInformation("Deleting donor with ID:" + id);
-            try {
+            try
+            {
+                var existingDonor = await _donorService.GetDonorByIdAsync(id);
+                if (existingDonor == null) return NotFound("donor with the given ID was not found");
                 var isDeleted = await _donorService.DeleteDonorAsync(id);
-                if (!isDeleted) return NotFound("donor with the given ID was not found");
+                if (!isDeleted)
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/gifts", existingDonor.Company_picture);
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                        _logger.LogInformation("Deleted physical file: " + existingDonor.Company_picture);
+                    }
+                }
                 _logger.LogInformation("Deleted donor with ID:" + id + " successfully.");
                 return Ok("deleted succesfully");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while deleting donor with ID:" + id);
-                return BadRequest("Internal server error ocuured");
+                return BadRequest(ex.Message);
             }
         }
 
