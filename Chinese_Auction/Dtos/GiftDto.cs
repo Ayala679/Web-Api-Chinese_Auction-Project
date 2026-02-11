@@ -40,8 +40,11 @@ namespace Chinese_Auction.Dto_s
         public int Value { get; set; }
         [Required]
         public int Donor_Id { get; set; }
+
+        public UserGetDonorDto Donor { get; set; }
         [Required]
-        public string Category_Name { get; set; } = string.Empty;
+        public string Category_Id { get; set; } = string.Empty;
+        public CategoryDto Category { get; set; }
         public bool IsLottery { get; set; } = false;
         public bool IsApproved { get; set; } = false;
         [Required]

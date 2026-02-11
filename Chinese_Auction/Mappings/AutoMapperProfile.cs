@@ -11,6 +11,7 @@ namespace Chinese_Auction.Mappings
             //Category
             CreateMap<CategoryDto, Category>();
             CreateMap<Category, GetCategoryDto>();
+            CreateMap<Category, CategoryDto>();
 
             // Gift
             CreateMap<Gift, GiftDto>().ReverseMap();
