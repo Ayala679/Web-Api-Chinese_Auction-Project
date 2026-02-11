@@ -36,6 +36,13 @@ namespace Chinese_Auction.Services
             return _mapper.Map<GetGiftDto?>(gift);
         }
 
+        public async Task<IEnumerable<GetGiftDto>> GetGiftsByCategoryIdAsync(int categoryId)
+        {
+            var gifts = await _giftRepository.GetGiftsByCategoryIdAsync(categoryId);
+            return _mapper.Map<IEnumerable<GetGiftDto>>(gifts);
+        }
+
+
         public async Task<IEnumerable<GetGiftDto>> GetUnApprovedGiftsAsync()
         {
             var gifts = await _giftRepository.GetUnApprovedGiftsAsync();
@@ -129,6 +136,8 @@ namespace Chinese_Auction.Services
                     .OrderByDescending(g => g.Category!.Name);
             return _mapper.Map<IEnumerable<GetGiftDto>>(gifts);
         }
+
+
 
 
 

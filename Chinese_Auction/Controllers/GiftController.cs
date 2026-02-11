@@ -57,6 +57,16 @@ namespace Chinese_Auction.Controllers
             return Ok(gift);
         }
 
+        [HttpGet("byCategory/{categoryId}")]
+        public async Task<IActionResult> GetGiftByCategoryIdAsync(int categoryId)
+        {
+            _logger.LogInformation("Getting gift by categoryID:" + categoryId);
+            var gifts = await _giftService.GetGiftsByCategoryIdAsync(categoryId);
+            _logger.LogInformation("Fetched gift by categoryID successfully.");
+            return Ok(gifts);
+
+        }
+
         [Authorize(Roles = "Manager")]
         [HttpPost]
         public async Task<IActionResult> CreateGiftAsync([FromForm] GiftDto gift,IFormFile? imageFile)
