@@ -16,12 +16,12 @@ namespace Chinese_Auction.Repository
         public async Task<IEnumerable<Purchase>> GetAllPurchasesAsync()
         {
             return await _context.Purchases
-                .Include(p => p.Gift).ToListAsync();
+                .Include(p => p.Gift).Include(p => p.User).ToListAsync();
         }
 
         public async Task<Purchase?> GetPurchaseByIdAsync(int id)
         {
-            return await _context.Purchases.Include(p => p.Gift).FirstOrDefaultAsync(p => p.Id == id);
+            return await _context.Purchases.Include(p => p.Gift).Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<IEnumerable<Purchase>> AddPurchasesRangeAsync(IEnumerable<Purchase> purchases)
@@ -54,6 +54,23 @@ namespace Chinese_Auction.Repository
         {
             return await _context.Purchases.FirstOrDefaultAsync(p => p.Gift_Id == giftId && p.Is_Won);
         }
+
+
+
+        public async Task<int> GetTotalEarningsAsync()
+        {
+            var totalRevenue = await _context.Purchases
+                .Select(p => new { p.Package_Id, p.Unique_Package_Id })
+                .Distinct()
+                .Join(_context.Packages,
+                    purchase => purchase.Package_Id,
+                    package => package.Id,
+                    (purchase, package) => package.Price)
+                .SumAsync();
+
+            return totalRevenue;
+        }
+
     }
 
 }

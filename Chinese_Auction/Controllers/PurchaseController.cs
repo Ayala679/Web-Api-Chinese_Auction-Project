@@ -62,32 +62,12 @@ namespace Chinese_Auction.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding purchases: ");
-                return BadRequest("Internal server error occurred");
+                return BadRequest(ex.Message);
             }
 
         }
 
-        [Authorize]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePurchase(int id, [FromBody] UpdatePurchaseDto purchaseDto)
-        {
-            _logger.LogInformation("User " + User.GetUserId() + " is updating purchase ID: " + id);
-            if (!User.IsManager() && User.GetUserId() != id)
-            {
-                return Forbid();
-            }
-            try
-            {
-                var updated = await _purchaseService.UpdatePurchaseAsync(id, purchaseDto);
-                _logger.LogInformation("Purchase ID: " + id + " updated successfully.");
-                return updated == null ? NotFound() : Ok(updated);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating purchase ID: " + id);
-                return BadRequest("Internal server error occurred");
-            }
-        }
+
 
         [Authorize]
         [HttpGet("user/{userId}")]
@@ -117,14 +97,31 @@ namespace Chinese_Auction.Controllers
         [HttpPost("lottery/{giftId}")]
         public async Task<IActionResult> RunLottery(int giftId)
         {
-            _logger.LogInformation("Manager is running lottery for gift ID: " + giftId);
-            var winner = await _purchaseService.Lottery(giftId);
-            if (winner == null) return BadRequest("No participants for this gift or lottery failed.");
-            _logger.LogInformation("Lottery for gift ID: " + giftId + " completed successfully. Winner ID: " + winner.Id);
-            return Ok(winner);
+            try
+            {
+                _logger.LogInformation("Manager is running lottery for gift ID: " + giftId);
+                var winner = await _purchaseService.Lottery(giftId);
+                if (winner == null) return BadRequest("No participants for this gift or lottery failed.");
+                _logger.LogInformation("Lottery for gift ID: " + giftId + " completed successfully. Winner ID: " + winner.Id);
+                return Ok(winner);
+            }
+            
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "לא נמצאה במערכת מתנה" });
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new { message = "הגרלה כבר בוצעה עבור מתנה " });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new { message = "לא נמצאו משתתפים להגרלה עבור מתנה " });
+            }
+
+
         }
 
-        // Authorize to Manager or User???
         [HttpGet("winner/{giftId}")]
         public async Task<IActionResult> GetWinner(int giftId)
         {
@@ -154,5 +151,23 @@ namespace Chinese_Auction.Controllers
                 return BadRequest("Internal server error occurred");
             }
         }
+        //[Authorize(Roles = "manager,Manager")]
+        [HttpGet("revenue/total")]
+        public async Task<IActionResult> GetTotalRevenue()
+        {
+            _logger.LogInformation("Starting to calculate total revenue from unique package transactions");
+            try
+            {
+                var totalRevenue = await _purchaseService.GetTotalEarningsAsync();
+                _logger.LogInformation("Total revenue retrieved successfully: {TotalRevenue}", totalRevenue);
+                return Ok(new { totalRevenue });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while calculating total revenue.");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
     }
 }

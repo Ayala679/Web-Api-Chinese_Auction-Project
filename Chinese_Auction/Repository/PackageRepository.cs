@@ -31,28 +31,6 @@ namespace Chinese_Auction.Repository
         }
 
 
-        //manager only
-        public async Task<Package?> UpdatePackageAsync(Package package)
-        {
-            var existing = await _context.Packages.FindAsync(package.Id);
-            if (existing == null) return null;
-            _context.Packages.Update(package);
-            await _context.SaveChangesAsync();
-            return existing;
-
-        }
-
-        //manager only
-        public async Task DeletePackageAsync(int id)
-        {
-            var package = await _context.Packages.FindAsync(id);
-            if (package != null)
-            {
-                _context.Packages.Remove(package);
-                await _context.SaveChangesAsync();
-            }
-        }
-
         public async Task<bool> PackageNameExistsAsync(string name, int id)
         {
             var packages = await _context.Packages.ToListAsync();

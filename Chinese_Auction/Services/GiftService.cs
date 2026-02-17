@@ -43,12 +43,6 @@ namespace Chinese_Auction.Services
         }
 
 
-        public async Task<IEnumerable<GetGiftDto>> GetUnApprovedGiftsAsync()
-        {
-            var gifts = await _giftRepository.GetUnApprovedGiftsAsync();
-            return _mapper.Map<IEnumerable<GetGiftDto>>(gifts);
-        }
-
         public async Task<GetGiftDto> CreateGiftAsync(GiftDto gift)
         {
             var createGift = _mapper.Map<Gift>(gift);
@@ -64,6 +58,8 @@ namespace Chinese_Auction.Services
                 _logger.LogWarning($"Gift with ID {id} not found for update.");
                 return null;
             }
+            if (existingGift.Purchases.Any() || existingGift.Purchases.Count() > 0)
+                throw new InvalidOperationException("לא ניתן למחוק מתנה שכבר נבחרה להגרלה");
             _mapper.Map(gift,existingGift);
             existingGift.Id = id;
             var updatedGift = await _giftRepository.UpdateGiftAsync(existingGift);
@@ -94,19 +90,6 @@ namespace Chinese_Auction.Services
         }
 
 
-
-        public async Task<bool> ApproveGiftAsync(int giftId)
-        {
-            var existingGift = await _giftRepository.GetGiftByIdAsync(giftId);
-            if (existingGift == null)
-            {
-                _logger.LogWarning($"Gift with ID {giftId} not found for approval.");
-                return false;
-            }
-            bool success = await _giftRepository.ApproveGiftAsync(giftId);
-            return success;
-        }
-
         public async Task<bool> DeleteGiftAsync(int id)
         {
             var existingGift = await _giftRepository.GetGiftByIdAsync(id);
@@ -115,6 +98,8 @@ namespace Chinese_Auction.Services
                _logger.LogWarning($"Gift with ID {id} not found for deletion.");
                 return false;
             }
+            if (existingGift.Purchases.Any() || existingGift.Purchases.Count() > 0)
+                throw new InvalidOperationException("לא ניתן למחוק מתנה שכבר נבחרה להגרלה");
             await _giftRepository.DeleteGiftAsync(id);
             return true;
         }

@@ -53,6 +53,8 @@ namespace Chinese_Auction.Services
         {
             var existingDonor = await _donorRepository.GetDonorByIdAsync(id);
             if (existingDonor == null) return null;
+            if (existingDonor.Gifts.Any() || existingDonor.Gifts.Count() > 0)
+                throw new InvalidOperationException("לא ניתן לערוך תורם שכבר תרם מתנות");
             _mapper.Map(donor, existingDonor);
             if (donor.Password != null)
             {
@@ -90,6 +92,8 @@ namespace Chinese_Auction.Services
                 _logger.LogWarning($"Attempt to delete non-existing donor with ID: {id}");
                 return false;
             }
+            if (existingDonor.Gifts.Any() || existingDonor.Gifts.Count() > 0)
+                throw new InvalidOperationException("לא ניתן למחוק תורם שכבר תרם מתנות");
             await _donorRepository.DeleteDonorAsync(id);
             return true;
         }

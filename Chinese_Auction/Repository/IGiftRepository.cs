@@ -11,10 +11,10 @@ namespace Chinese_Auction.Repository
         Task<Gift?> GetGiftByIdAsync(int id);
         Task<IEnumerable<Gift>> GetGiftsByCategoryIdAsync(int categoryId);
         Task<IEnumerable<Gift>> GetGiftsByDonorIdAsync(int donorId);
-        Task<IEnumerable<Gift>> GetUnApprovedGiftsAsync();
         Task<Gift?> UpdateGiftAsync(Gift gift);
         Task<Gift?> UpdateGiftPurchasesQuantityAsync(int giftId);
-        Task<bool> ApproveGiftAsync(int giftId);
         Task<IEnumerable<Gift>> GetFilteredGiftsAsync(string? giftName, string? donorName, int? minPurchases);
+        Task<Gift> UpdateGiftLotteryAsync(int giftId);
+
     }
 }

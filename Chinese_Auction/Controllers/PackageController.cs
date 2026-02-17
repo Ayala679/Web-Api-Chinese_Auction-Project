@@ -56,44 +56,6 @@ namespace Chinese_Auction.Controllers
                 return BadRequest("Internal server error occurred");
             }
         }
-
-        [Authorize(Roles = "Manager")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePackage(int id, [FromBody] CreatePackageDto updatePackageDto)
-        {
-            _logger.LogInformation("Updating package with ID:" + id);
-            try
-            {
-                var updatedPackage = await _packageService.UpdatePackageAsync(id, updatePackageDto);
-                if (updatedPackage == null) return NotFound("Package with the given ID was not found");
-                _logger.LogInformation("Package updated successfully.");
-                return Ok(updatePackageDto);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating package: ");
-                return BadRequest("Internal server error occurred");
-            }
-        }
-
-        [Authorize(Roles = "Manager")]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePackage(int id)
-        {
-            _logger.LogInformation("Deleting package with ID:" + id);
-            try
-            {
-                var isDeleted = await _packageService.DeletePackageAsync(id);
-                if (!isDeleted) return NotFound("Package with the given ID was not found");
-                _logger.LogInformation("Package deleted successfully.");
-                return Ok("deleted succesfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while deleting package: ");
-                return BadRequest("Internal server error occurred");
-            }
-        }
         
     }
 }

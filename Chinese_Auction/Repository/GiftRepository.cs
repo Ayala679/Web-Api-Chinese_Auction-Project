@@ -19,23 +19,20 @@ namespace Chinese_Auction.Repository
             return await _context.Gifts
                 .Include(g => g.Category)
                 .Include(g => g.Donor)
+                .Include(g => g.Purchases)
                 //.Where(g => g.IsApproved)
                 .ToListAsync();
         }
 
         public async Task<Gift?> GetGiftByIdAsync(int id)
         {
-            return await _context.Gifts.Include(g => g.Category).Include(g => g.Donor).FirstOrDefaultAsync(g => g.Id == id);
-        }
-
-        public async Task<IEnumerable<Gift>> GetUnApprovedGiftsAsync()
-        {
             return await _context.Gifts
                 .Include(g => g.Category)
                 .Include(g => g.Donor)
-                .Where(g => !g.IsApproved)
-                .ToListAsync();
+                .Include (g => g.Purchases)
+                .FirstOrDefaultAsync(g => g.Id == id);
         }
+
 
         public async Task<Gift> CreateGiftAsync(Gift gift)
         {
@@ -83,14 +80,6 @@ namespace Chinese_Auction.Repository
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Gift>> GetGiftsByApprovalStatusAsync(bool isApproved)
-        {
-            return await _context.Gifts
-                .Include(g => g.Category)
-                .Include(g => g.Donor)
-                .Where(g => g.IsApproved == isApproved)
-                .ToListAsync();
-        }
 
         public async Task<Gift?> UpdateGiftPurchasesQuantityAsync(int giftId)
         {
@@ -101,14 +90,6 @@ namespace Chinese_Auction.Repository
                     g => g.Purchase_quantity + 1));
             if (rowsAffected == 0) return null;
             return await _context.Gifts.FindAsync(giftId);
-        }
-
-        public async Task<bool> ApproveGiftAsync(int giftId)
-        {
-            int rowsAffected = await _context.Gifts
-                .Where(g => g.Id == giftId)
-                .ExecuteUpdateAsync(s => s.SetProperty(g => g.IsApproved,true));
-            return rowsAffected > 0;
         }
 
 
@@ -128,6 +109,14 @@ namespace Chinese_Auction.Repository
             return await query.ToListAsync();
         }
 
+        public async Task<Gift?> UpdateGiftLotteryAsync(int giftId)
+        {
+            var existing = await _context.Gifts.FindAsync(giftId);
+            if (existing == null) return null;
+            existing.IsLottery = true;
+            await _context.SaveChangesAsync();
+            return existing;
+        }
 
     }
 }

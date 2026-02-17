@@ -13,5 +13,6 @@ namespace Chinese_Auction.Repository
         Task<Purchase?> UpdatePurchaseAsync(Purchase purchase);
 
         Task<Purchase?> GetWinnerByGiftIdAsync(int giftId);
+        Task<int> GetTotalEarningsAsync();
     }
 }

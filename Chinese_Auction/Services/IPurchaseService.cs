@@ -12,8 +12,7 @@ namespace Chinese_Auction.Services
         Task<IEnumerable<GetPurchaseDto>> GetPurchasesByUserIdAsync(int userId);
         Task<GetPurchaseDto?> GetWinnersByGiftIdAsync(int giftId);
         Task<GetPurchaseDto?> Lottery(int giftId);
-        Task<GetPurchaseDto?> UpdatePurchaseAsync(int purchaseId, UpdatePurchaseDto purchaseDto);
         Task<IEnumerable<GetPurchaseDto>> GetSortedPurchasesAsync(string sortBy);
-
+        Task<int> GetTotalEarningsAsync();
     }
 }

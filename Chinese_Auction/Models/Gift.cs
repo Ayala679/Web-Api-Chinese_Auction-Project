@@ -18,7 +18,7 @@ namespace Chinese_Auction.Models
         public string Picture { get; set; } = string.Empty;
 
         [Required]
-        public int Value { get; set; }
+        public int Value { get; set; } = 10;
         public int Purchase_quantity { get; set; } = 0;
 
         [Required]
@@ -35,8 +35,6 @@ namespace Chinese_Auction.Models
 
         public ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
 
-        public bool isLottery { get; set; } = false;
-
-        public bool IsApproved { get; set; } = false;
+        public bool IsLottery { get; set; } = false;
     }
 }

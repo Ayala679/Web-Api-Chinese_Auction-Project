@@ -3,6 +3,7 @@ using Chinese_Auction.Dto_s;
 using Chinese_Auction.Models;
 using Chinese_Auction.Repository;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 
 namespace Chinese_Auction.Services
 {
@@ -13,14 +14,16 @@ namespace Chinese_Auction.Services
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
         private readonly IUserRepository _userRepository;
+        private readonly IGiftRepository _giftRepository;
 
-        public PurchaseService(ILogger<PurchaseService> logger, IPurchaseRepository purchaseRepository, IMapper mapper, IEmailService emailService, IUserRepository userRepository)
+        public PurchaseService(ILogger<PurchaseService> logger, IPurchaseRepository purchaseRepository, IMapper mapper, IEmailService emailService, IUserRepository userRepository, IGiftRepository giftRepository)
         {
             _logger = logger;
             _purchaseRepository = purchaseRepository;
             _mapper = mapper;
             _emailService = emailService;
             _userRepository = userRepository;
+            _giftRepository = giftRepository;
         }
 
         public async Task<IEnumerable<GetPurchaseDto>> GetAllPurchasesAsync()
@@ -40,39 +43,43 @@ namespace Chinese_Auction.Services
             return _mapper.Map<GetPurchaseDto>(purchase);
         }
 
+        //public async Task<IEnumerable<GetPurchaseDto>> AddPurchasesAsync(List<CreatePurchaseDto> purchaseDtos)
+        //{
+        //    var uniqueGroupId = Guid.NewGuid().ToString();
+
+        //    var purchases = purchaseDtos.Select(async dto =>
+        //    {
+        //        var purchase = _mapper.Map<Purchase>(dto);
+        //        purchase.Unique_Package_Id = uniqueGroupId;
+        //        purchase.Purchase_Date = DateTime.Now;
+        //        purchase.Is_Won = false;
+        //        await _giftRepository.UpdateGiftPurchasesQuantityAsync(dto.Gift_Id);
+        //        return purchase;
+        //    }).ToList();
+        //    var finalPurchase = await Task.WhenAll(purchases);
+        //    var savedPurchases = await _purchaseRepository.AddPurchasesRangeAsync(finalPurchase);
+        //    return _mapper.Map<IEnumerable<GetPurchaseDto>>(savedPurchases);
+        //}
+
         public async Task<IEnumerable<GetPurchaseDto>> AddPurchasesAsync(List<CreatePurchaseDto> purchaseDtos)
         {
             var uniqueGroupId = Guid.NewGuid().ToString();
+            var finalPurchases = new List<Purchase>();
 
-            var purchases = purchaseDtos.Select(dto =>
+            foreach (var dto in purchaseDtos)
             {
                 var purchase = _mapper.Map<Purchase>(dto);
                 purchase.Unique_Package_Id = uniqueGroupId;
                 purchase.Purchase_Date = DateTime.Now;
                 purchase.Is_Won = false;
-                return purchase;
-            }).ToList();
 
-            var savedPurchases = await _purchaseRepository.AddPurchasesRangeAsync(purchases);
+                await _giftRepository.UpdateGiftPurchasesQuantityAsync(dto.Gift_Id);
+
+                finalPurchases.Add(purchase);
+            }
+
+            var savedPurchases = await _purchaseRepository.AddPurchasesRangeAsync(finalPurchases);
             return _mapper.Map<IEnumerable<GetPurchaseDto>>(savedPurchases);
-        }
-
-        public async Task<GetPurchaseDto?> UpdatePurchaseAsync(int purchaseId, UpdatePurchaseDto purchaseDto)
-        {
-            var existingPurchase = await _purchaseRepository.GetPurchaseByIdAsync(purchaseId);
-            if (existingPurchase == null)
-            {
-                _logger.LogWarning("Purchase with ID {PurchaseId} not found for update.", purchaseId);
-                return null;
-            }
-            _mapper.Map(purchaseDto, existingPurchase);
-            existingPurchase.Id = purchaseId;
-            var updatedPurchase = await _purchaseRepository.UpdatePurchaseAsync(existingPurchase);
-            if(updatedPurchase == null)
-            {
-                _logger.LogError("Failed to update Purchase with ID {PurchaseId}.", purchaseId);
-            }
-            return _mapper.Map<GetPurchaseDto>(updatedPurchase);
         }
 
 
@@ -103,22 +110,28 @@ namespace Chinese_Auction.Services
         public async Task<GetPurchaseDto?> Lottery(int giftId)
         {
             IEnumerable<Purchase> allPurchases = await _purchaseRepository.GetPurchasesByGiftIdAsync(giftId);
+            var gift = await _giftRepository.GetGiftByIdAsync(giftId);
+            if (gift == null)
+                throw new KeyNotFoundException("לא נמצאה מתנה להגרלה");
+            if (gift.IsLottery)
+                throw new InvalidOperationException("הגרלה כבר בוצעה עבור מתנה זו");
             if (allPurchases == null || !allPurchases.Any())
             {
                 _logger.LogWarning("No purchases found for Gift ID {GiftId}. Cannot conduct lottery.", giftId);
-                return null;
+                throw new Exception("לא נמצאו משתתפים להגרלה עבור מתנה זו");
             }
             var random = new Random();
             var allPurchasesList = allPurchases.ToList();
             var winner = allPurchasesList[random.Next(allPurchasesList.Count)];
             var winnerDto = _mapper.Map<GetPurchaseDto>(winner);
             winner.Is_Won = true;
+            var updated=await _giftRepository.UpdateGiftLotteryAsync(giftId);
             await _purchaseRepository.UpdatePurchaseAsync(winner);
-            await SendNotificationEmail(winnerDto);
+            await SendNotificationEmail(winnerDto,giftId);
             return _mapper.Map<GetPurchaseDto>(winner); 
         }
 
-        private async Task SendNotificationEmail(GetPurchaseDto winner)
+        private async Task SendNotificationEmail(GetPurchaseDto winner,int giftID)
         {
             var user = await _userRepository.GetUserById(winner.User_Id);
             if(user == null)
@@ -130,7 +143,7 @@ namespace Chinese_Auction.Services
             if (!string.IsNullOrEmpty(recipientEmail))
             {
                 string subject = "עדכון לגבי ההגרלה";
-                string message = "ברכותינו! עליית בגורל כזוכה עבור המתנה המבוקשת.";
+                string message = ":ברכותינו! עליית בגורל כזוכה עבור המתנה המבוקשת."+giftID;
                 await _emailService.SendEmailAsync(recipientEmail, subject, message);
             }
         }
@@ -160,5 +173,13 @@ namespace Chinese_Auction.Services
 
             return _mapper.Map<IEnumerable<GetPurchaseDto>>(purchases);
         }
+
+        public async Task<int> GetTotalEarningsAsync()
+        {
+            var totalRevenue = await _purchaseRepository.GetTotalEarningsAsync();
+            _logger.LogInformation("Total revenue calculated successfully: {TotalRevenue}", totalRevenue);
+            return totalRevenue;
+        }
+
     }
 }
