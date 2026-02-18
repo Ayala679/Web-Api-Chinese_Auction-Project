@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Serilog;
+using ChineseAuction.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -155,6 +156,7 @@ app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiting();
 
 app.MapControllers();
 
